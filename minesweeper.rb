@@ -1,17 +1,10 @@
-puts "What is your name?"
-STDOUT.flush
-s = gets.chomp
-
-puts "Your name is " + s
-
-
-
 class Board
 
   def initialize(size, mines)
     @my_size = size
     @my_num_mines = mines
     @my_board = Array.new(@my_size){ |row| Array.new(@my_size) { |col| Cell.new(row,col) } }
+    @num_revealed = 0
     place_mines()
   end
 
@@ -28,7 +21,9 @@ class Board
       end
       string += "\n"
     end
-    puts string
+
+    # remove hanging new line
+    string[0,string.length-1]
   end
 
   def size
@@ -49,20 +44,31 @@ class Board
 
   def reveal(row,col)
     cell = cell(row,col)
+    if cell.revealed?
+      return "You've already looked there!"
+    end
+
     cell.reveal
+    @num_revealed += 1
 
     if cell.mine?
-      puts "Game over"
+      return "Game over"
     end
 
     if cell.value == 0
       # reveal all neighbors that aren't mines
       neighbors_to(row,col).each do |neighbor|
         unless neighbor.mine? || neighbor.revealed?
-          reveal(adj_row, adj_col)
+          reveal(neighbor.row, neighbor.col)
         end
       end
     end
+
+    if @num_revealed == (size * size) - num_mines
+      return "Congratulations! You win!"
+    end
+
+    "\n"
   end
 
 
@@ -82,8 +88,7 @@ class Board
       end
 
       board[row][col] = Cell.new(row, col, mine = true)
-      
-      puts neighbors_to(row,col).inspect
+
       #increment neighboring empty cells
       neighbors_to(row,col).each do |neighbor|
         unless neighbor.mine?
@@ -194,5 +199,67 @@ class Cell
   
 end
 
+
+puts "Welcome to Minesweeper!"
+puts "Please enter the size of the board you want to play:"
+size = gets.chomp
+
+while (size =~ /^\d+$/).nil? || (size.to_i <= 0)
+  puts "You need to type a positive integer:"
+  size = gets.chomp
+end
+
+puts "How many mines do you want to have?"
+mines = gets.chomp
+
+while (mines =~ /^\d+$/).nil? || (mines.to_i <= 0)
+  puts "You need to type a positive integer:"
+  mines = gets.chomp
+end
+
+size = size.to_i
+mines = mines.to_i
+
+board = Board.new(size, mines)
+
+while true
+  puts ""
+  border = ""
+  size.times { border += "-" }
+  puts border
+  puts "#{board.print_board}"
+  puts border
+  puts ""
+  puts "Type a row and a column to reveal (row,column):"
+  pos = gets.chomp
+
+  while true
+    if (pos =~ /^\d+,\s*\d+$/).nil?
+      puts "Please type in a valid row,column pair"
+      pos = gets.chomp
+    elsif pos.split(',').map(&:to_i).any? {|num| num > size}
+      puts "Your values must be on the board"
+      pos = gets.chomp
+    else
+      pos = pos.split(',').map(&:to_i)
+      break
+    end
+  end
+
+  message = board.reveal(pos[0]-1, pos[1]-1)
+
+  if message == "Game over"
+    puts "You hit a mine! Game over!"
+    puts "#{board.print_board}"
+    break
+  elsif message == "Congratulations! You win!"
+    puts message
+    puts "#{board.print_board}"
+    break    
+  else
+    puts message
+  end
+
+end
 
 
