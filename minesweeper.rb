@@ -48,29 +48,41 @@ class Board
       return "You've already looked there!"
     end
 
-    cell.reveal
-    @num_revealed += 1
+    # use a stack of cells we need to reveal
+    # tried using more elegant recursion but stack got too deep for large, empty boards
+    # changed to iterative instead
+    cells = [cell]
 
-    if cell.mine?
-      return "Game over"
-    end
+    while !cells.empty?
+      cell = cells.pop
+      if cell.revealed?
+        next # skip this neighbor since it was revealed by another cell already
+      end
 
-    if cell.value == 0
-      # reveal all neighbors that aren't mines
-      neighbors_to(row,col).each do |neighbor|
-        unless neighbor.mine? || neighbor.revealed?
-          reveal(neighbor.row, neighbor.col)
+      cell.reveal
+      @num_revealed += 1
+
+      if cell.mine?
+        return "Game over"
+      end
+
+      # if this cell has no mines next to it, also reveal any non-revealed neighbor cells
+      if cell.value == 0
+        neighbors_to(cell.row, cell.col).each do |neighbor|
+          unless neighbor.mine? || neighbor.revealed?
+            cells.push(neighbor)
+          end
         end
       end
     end
 
+    # Player wins when all cells except the mine cells have been revealed
     if @num_revealed == (size * size) - num_mines
       return "Congratulations! You win!"
     end
 
     "\n"
   end
-
 
   private
   def place_mines
