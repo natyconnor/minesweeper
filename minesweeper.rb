@@ -217,19 +217,27 @@ puts "Please enter the size of the board you want to play:"
 size = gets.chomp
 
 while (size =~ /^\d+$/).nil? || (size.to_i <= 0)
-  puts "You need to type a positive integer:"
+  puts "You need to type a positive integer (e.g. 10):"
   size = gets.chomp
 end
+
+size = size.to_i
 
 puts "How many mines do you want to have?"
 mines = gets.chomp
 
-while (mines =~ /^\d+$/).nil? || (mines.to_i <= 0)
-  puts "You need to type a positive integer:"
-  mines = gets.chomp
+while true
+  if (mines =~ /^\d+$/).nil?
+    puts "You need to type a positive integer (e.g. 10):"
+    mines = gets.chomp
+  elsif mines.to_i > (size * size) - 1
+    puts "You need fewer mines than spaces on the board!"
+    mines = gets.chomp
+  else
+    break
+  end
 end
 
-size = size.to_i
 mines = mines.to_i
 
 board = Board.new(size, mines)
