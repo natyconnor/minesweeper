@@ -213,73 +213,87 @@ end
 
 
 puts "Welcome to Minesweeper!"
-puts "Please enter the size of the board you want to play:"
-size = gets.chomp
 
-while (size =~ /^\d+$/).nil? || (size.to_i <= 0)
-  puts "You need to type a positive integer (e.g. 10):"
+# if we want to play again after the game
+play_again = "y"
+
+while play_again == "y"
+  puts "Please enter the size of the board you want to play:"
   size = gets.chomp
-end
 
-size = size.to_i
-
-puts "How many mines do you want to have?"
-mines = gets.chomp
-
-while true
-  if (mines =~ /^\d+$/).nil?
+  while (size =~ /^\d+$/).nil? || (size.to_i <= 0)
     puts "You need to type a positive integer (e.g. 10):"
-    mines = gets.chomp
-  elsif mines.to_i > (size * size) - 1
-    puts "You need fewer mines than spaces on the board!"
-    mines = gets.chomp
-  else
-    break
+    size = gets.chomp
   end
-end
 
-mines = mines.to_i
+  size = size.to_i
 
-board = Board.new(size, mines)
-
-while true
-  puts ""
-  border = ""
-  size.times { border += "-" }
-  puts border
-  puts "#{board.print_board}"
-  puts border
-  puts ""
-  puts "Type a row and a column to reveal (row,column):"
-  pos = gets.chomp
+  puts "How many mines do you want to have?"
+  mines = gets.chomp
 
   while true
-    if (pos =~ /^\d+,\s*\d+$/).nil?
-      puts "Please type in a valid row,column pair"
-      pos = gets.chomp
-    elsif pos.split(',').map(&:to_i).any? {|num| num > size}
-      puts "Your values must be on the board"
-      pos = gets.chomp
+    if (mines =~ /^\d+$/).nil?
+      puts "You need to type a positive integer (e.g. 10):"
+      mines = gets.chomp
+    elsif mines.to_i > (size * size) - 1
+      puts "You need fewer mines than spaces on the board!"
+      mines = gets.chomp
     else
-      pos = pos.split(',').map(&:to_i)
       break
     end
   end
 
-  message = board.reveal(pos[0]-1, pos[1]-1)
+  mines = mines.to_i
 
-  if message == "Game over"
-    puts "You hit a mine! Game over!"
+  board = Board.new(size, mines)
+
+  while true
+    puts ""
+    border = ""
+    size.times { border += "-" }
+    puts border
     puts "#{board.print_board}"
-    break
-  elsif message == "Congratulations! You win!"
-    puts message
-    puts "#{board.print_board}"
-    break    
-  else
-    puts message
+    puts border
+    puts ""
+    puts "Type a row and a column to reveal (row,column):"
+    pos = gets.chomp
+
+    while true
+      if (pos =~ /^\d+,\s*\d+$/).nil?
+        puts "Please type in a valid row,column pair"
+        pos = gets.chomp
+      elsif pos.split(',').map(&:to_i).any? {|num| num > size}
+        puts "Your values must be on the board"
+        pos = gets.chomp
+      else
+        pos = pos.split(',').map(&:to_i)
+        break
+      end
+    end
+
+    message = board.reveal(pos[0]-1, pos[1]-1)
+
+    if message == "Game over"
+      puts "You hit a mine! Game over!"
+      puts "#{board.print_board}"
+      break
+    elsif message == "Congratulations! You win!"
+      puts message
+      puts "#{board.print_board}"
+      break    
+    else
+      puts message
+    end
+
   end
 
-end
+  loop do
+    puts "Would you like to play again? (y/n)"
+    play_again = gets.chomp
 
+    if play_again == "y" || play_again == "n"
+      break
+    end
+  end
+end
 
