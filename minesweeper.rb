@@ -218,16 +218,25 @@ puts "Welcome to Minesweeper!"
 play_again = "y"
 
 while play_again == "y"
+
+  # Select game size 
   puts "Please enter the size of the board you want to play:"
   size = gets.chomp
 
-  while (size =~ /^\d+$/).nil? || (size.to_i <= 0)
-    puts "You need to type a positive integer (e.g. 10):"
-    size = gets.chomp
+  while true
+    if (size =~ /^\d+$/).nil?
+      puts "You need to type a positive integer (e.g. 10):"
+      size = gets.chomp
+    elsif size.to_i < 2
+      puts "The board size needs to be at least 2."
+      size = gets.chomp
+    else
+      break
+    end      
   end
-
   size = size.to_i
 
+  # Select number of mines
   puts "How many mines do you want to have?"
   mines = gets.chomp
 
@@ -242,11 +251,11 @@ while play_again == "y"
       break
     end
   end
-
   mines = mines.to_i
 
   board = Board.new(size, mines)
 
+  # Game loop 
   while true
     puts ""
     border = ""
@@ -258,6 +267,7 @@ while play_again == "y"
     puts "Type a row and a column to reveal (row,column):"
     pos = gets.chomp
 
+    # Check input
     while true
       if (pos =~ /^\d+,\s*\d+$/).nil?
         puts "Please type in a valid row,column pair"
@@ -271,8 +281,10 @@ while play_again == "y"
       end
     end
 
+    # reveal position
     message = board.reveal(pos[0]-1, pos[1]-1)
 
+    # check message for end game
     if message == "Game over"
       puts "You hit a mine! Game over!"
       puts "#{board.print_board}"
@@ -287,6 +299,7 @@ while play_again == "y"
 
   end
 
+  # Ask to play again
   loop do
     puts "Would you like to play again? (y/n)"
     play_again = gets.chomp
