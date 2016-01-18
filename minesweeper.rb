@@ -3,6 +3,7 @@ class Board
   def initialize(size, mines)
     @my_size = size
     @my_num_mines = mines
+    # makes a 2D array filled with new Cell objects
     @my_board = Array.new(@my_size){ |row| Array.new(@my_size) { |col| Cell.new(row,col) } }
     @num_revealed = 0
     place_mines()
@@ -55,8 +56,10 @@ class Board
 
     while !cells.empty?
       cell = cells.pop
+
+      # skip this neighbor since it was revealed by another cell already
       if cell.revealed?
-        next # skip this neighbor since it was revealed by another cell already
+        next 
       end
 
       cell.reveal
@@ -67,7 +70,7 @@ class Board
       end
 
       # if this cell has no mines next to it, also reveal any non-revealed neighbor cells
-      if cell.value == 0
+      unless cell.next_to_mine?
         neighbors_to(cell.row, cell.col).each do |neighbor|
           unless neighbor.mine? || neighbor.revealed?
             cells.push(neighbor)
@@ -81,18 +84,17 @@ class Board
       return "Congratulations! You win!"
     end
 
+    # return a new line if there's no special message to give
     "\n"
   end
 
   private
   def place_mines
-    # nums = [*0..(@my_size*@my_size-1)]
-    # nums.sample(@my_num_mines).each do |num|
-      # row = num / @my_size
-      # col = num % @my_size
     @my_num_mines.times do |num|
       row = -1
       col = -1
+
+      # generate random row, col values until it's a location with no mine yet
       loop do
         row = rand(@my_size)
         col = rand(@my_size)
@@ -114,6 +116,7 @@ class Board
     row >= 0 && row < @my_size && col >= 0 && col < @my_size
   end
 
+  # returns a list of the Cells that are neighbors to this row, col position
   def neighbors_to(row,col)
     neighbors = []
     (-1..1).each do |drow|
@@ -133,11 +136,8 @@ end
 class Cell
 
   def initialize( row, col, mine = false)
-    # @my_board = board
     @my_row = row
     @my_col = col
-    # @my_neighbors = []
-    # find_neighbors
 
     if mine
       @value = "M"
@@ -153,6 +153,10 @@ class Cell
 
   def revealed?
     @revealed
+  end
+
+  def next_to_mine?
+    !(@value == 0)
   end
 
   def board
@@ -183,7 +187,7 @@ class Cell
     @value += 1
   end
 
-
+  # to string for users playing the game, i.e. use X if not revealed
   def user_to_s
     if revealed?
       @value.to_s
@@ -197,20 +201,10 @@ class Cell
   end
 
   private
-  def find_neighbors
-    (-1..1).each do |drow|
-      (-1..1).each do |dcol|
-        neighbor_row = row + drow
-        neighbor_col = col + dcol
-        if board.on_board?(neighbor_row, neighbor_col) && neighbor_row != row && neighbor_col != col
-          @my_neighbors << board.cell(neighbor_row, neighbor_col)
-        end
-      end
-    end
-  end
   
 end
 
+# Game logic ############################################################
 
 puts "Welcome to Minesweeper!"
 
@@ -282,6 +276,7 @@ while play_again == "y"
     end
 
     # reveal position
+    # subtract 1 to account for user using 1-indexed row, col instead of 0-indexed
     message = board.reveal(pos[0]-1, pos[1]-1)
 
     # check message for end game
